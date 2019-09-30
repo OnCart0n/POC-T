@@ -13,7 +13,11 @@ AUTHOR = 'cdxy'
 MAIL = 'i@cdxy.me'
 PLATFORM = os.name
 LICENSE = 'GPLv2'
-IS_WIN = subprocess.mswindows
+from lib.utils.versioncheck import PY3
+if PY3:
+    IS_WIN = subprocess._mswindows
+else:
+    IS_WIN = subprocess.mswindows
 
 # essential methods/functions in custom scripts/PoC (such as function poc())
 ESSENTIAL_MODULE_METHODS = ['poc']

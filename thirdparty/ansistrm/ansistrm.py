@@ -1,11 +1,13 @@
 #
 # Copyright (C) 2010-2012 Vinay Sajip. All rights reserved. Licensed under the new BSD license.
 #
+from __future__ import print_function
 import logging
 import os
 import re
 
 from lib.core.convert import stdoutencode
+from lib.utils.versioncheck import PY3
 
 
 class ColorizingStreamHandler(logging.StreamHandler):
@@ -87,7 +89,8 @@ class ColorizingStreamHandler(logging.StreamHandler):
 
         def output_colorized(self, message):
             import ctypes
-
+            if PY3:
+                message = message.decode()
             parts = self.ansi_esc.split(message)
             write = self.stream.write
             h = None
@@ -123,7 +126,7 @@ class ColorizingStreamHandler(logging.StreamHandler):
                                 color = 0x07
                             else:
                                 pass # error condition ignored
-
+                        print('\r',end='')
                         ctypes.windll.kernel32.SetConsoleTextAttribute(h, color)
 
     def colorize(self, message, record):

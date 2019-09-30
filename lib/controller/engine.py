@@ -12,6 +12,9 @@ from lib.core.common import dataToStdout
 from lib.utils.console import getTerminalSize
 from lib.utils.versioncheck import PYVERSION
 from lib.core.enums import POC_RESULT_STATUS, ENGINE_MODE_STATUS
+from lib.utils.versioncheck import PY2
+if PY2:
+    range = xrange
 
 
 def initEngine():
@@ -77,11 +80,11 @@ def run():
                 break
 
     elif conf.ENGINE is ENGINE_MODE_STATUS.GEVENT:
+        import gevent
         from gevent import monkey
         monkey.patch_all()
-        import gevent
         while th.queue.qsize() > 0 and th.is_continue:
-            gevent.joinall([gevent.spawn(scan) for i in xrange(0, th.threads_num) if
+            gevent.joinall([gevent.spawn(scan) for i in range(0, th.threads_num) if
                             th.queue.qsize() > 0])
 
     dataToStdout('\n')

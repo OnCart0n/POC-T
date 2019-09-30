@@ -1,4 +1,5 @@
 from __future__ import generators
+from __future__ import print_function
 """
 httplib2
 
@@ -24,17 +25,26 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
 __license__ = "MIT"
 __version__ = "0.9.2"
 
+from lib.utils.versioncheck import PY3
 import re
 import sys
 import email
-import email.Utils
-import email.Message
-import email.FeedParser
-import StringIO
+if PY3:
+    import email.utils as Utils
+    import email.message as Message
+    import email.feedparser as FeedParser
+    import io as StringIO
+    from http import client as httplib
+    from urllib import parse as urlparse
+else:
+    import email.Utils
+    import email.Message
+    import email.FeedParser
+    import StringIO
+    import httplib
+    import urlparse
 import gzip
 import zlib
-import httplib
-import urlparse
 import urllib
 import base64
 import os
@@ -91,11 +101,8 @@ except (AttributeError, ImportError):
         return httplib.FakeSocket(sock, ssl_sock)
 
 
-if sys.version_info >= (2,3):
-    from iri2uri import iri2uri
-else:
-    def iri2uri(uri):
-        return uri
+def iri2uri(uri):
+    return uri
 
 def has_timeout(timeout): # python 2.6
     if hasattr(socket, '_GLOBAL_DEFAULT_TIMEOUT'):
@@ -909,23 +916,23 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                     self.sock.settimeout(self.timeout)
                     # End of difference from httplib.
                 if self.debuglevel > 0:
-                    print "connect: (%s, %s) ************" % (self.host, self.port)
+                    print("connect: (%s, %s) ************" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s ************" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s ************" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
 
                 self.sock.connect((self.host, self.port) + sa[2:])
-            except socket.error, msg:
+            except socket.error as msg:
                 if self.debuglevel > 0:
-                    print "connect fail: (%s, %s)" % (self.host, self.port)
+                    print("connect fail: (%s, %s)" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
                 if self.sock:
                     self.sock.close()
                 self.sock = None
                 continue
             break
         if not self.sock:
-            raise socket.error, msg
+            raise socket.error(msg)
 
 class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
     """
@@ -1035,9 +1042,9 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                     sock, self.key_file, self.cert_file,
                     self.disable_ssl_certificate_validation, self.ca_certs)
                 if self.debuglevel > 0:
-                    print "connect: (%s, %s)" % (self.host, self.port)
+                    print("connect: (%s, %s)" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
                 if not self.disable_ssl_certificate_validation:
                     cert = self.sock.getpeercert()
                     hostname = self.host.split(':', 0)[0]
@@ -1045,7 +1052,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                         raise CertificateHostnameMismatch(
                             'Server presented certificate that does not match '
                             'host %s: %s' % (hostname, cert), hostname, cert)
-            except ssl_SSLError, e:
+            except ssl_SSLError as e:
                 if sock:
                     sock.close()
                 if self.sock:
@@ -1061,18 +1068,18 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                     raise
             except (socket.timeout, socket.gaierror):
                 raise
-            except socket.error, msg:
+            except socket.error as msg:
                 if self.debuglevel > 0:
-                    print "connect fail: (%s, %s)" % (self.host, self.port)
+                    print("connect fail: (%s, %s)" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
                 if self.sock:
                     self.sock.close()
                 self.sock = None
                 continue
             break
         if not self.sock:
-            raise socket.error, msg
+            raise socket.error(msg)
 
 SCHEME_TO_CONNECTION = {
     'http': HTTPConnectionWithTimeout,
@@ -1279,7 +1286,7 @@ class Http(object):
             except ssl_SSLError:
                 conn.close()
                 raise
-            except socket.error, e:
+            except socket.error as e:
                 err = 0
                 if hasattr(e, 'args'):
                     err = getattr(e, 'args')[0]
@@ -1607,7 +1614,7 @@ class Http(object):
                     content = ""
                 else:
                     (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
-        except Exception, e:
+        except Exception as e:
             if self.force_exception_to_status_code:
                 if isinstance(e, HttpLib2ErrorWithResponse):
                     response = e.response
@@ -1693,4 +1700,4 @@ class Response(dict):
         if name == 'dict':
             return self
         else:
-            raise AttributeError, name
+            raise AttributeError(name)

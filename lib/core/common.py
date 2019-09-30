@@ -3,6 +3,7 @@
 # project = https://github.com/Xyntax/POC-T
 # author = i@cdxy.me
 
+from __future__ import print_function
 import os
 import re
 import sys
@@ -17,6 +18,9 @@ from lib.core.convert import stdoutencode
 from lib.core.enums import EXIT_STATUS, ENGINE_MODE_STATUS
 from thirdparty.termcolor.termcolor import colored
 from thirdparty.odict.odict import OrderedDict
+from lib.utils.versioncheck import PY3
+if PY3:
+    unicode = str
 
 
 def setPaths():
@@ -90,7 +94,8 @@ def dataToStdout(data, bold=False):
             message = stdoutencode(data)
         else:
             message = data
-
+        if PY3:
+            message = message.decode()
         sys.stdout.write(setColor(message, bold))
 
         try:
@@ -133,11 +138,11 @@ def pollProcess(process, suppress_errors=False):
         if returncode is not None:
             if not suppress_errors:
                 if returncode == 0:
-                    print " done\n"
+                    print(" done\n")
                 elif returncode < 0:
-                    print " process terminated by signal %d\n" % returncode
+                    print(" process terminated by signal %d\n" % returncode)
                 elif returncode > 0:
-                    print " quit unexpectedly with return code %d\n" % returncode
+                    print(" quit unexpectedly with return code %d\n" % returncode)
             break
 
 
@@ -181,7 +186,7 @@ def getUnicode(value, encoding=None, noneToNull=False):
         while True:
             try:
                 return unicode(value, encoding or UNICODE_ENCODING)
-            except UnicodeDecodeError, ex:
+            except UnicodeDecodeError as ex:
                 try:
                     return unicode(value, UNICODE_ENCODING)
                 except Exception:
@@ -256,7 +261,7 @@ def getFileItems(filename, commentPrefix='#', unicode_=True, lowercase=False, un
                     else:
                         retVal.append(line)
 
-    except (IOError, OSError, MemoryError), ex:
+    except (IOError, OSError, MemoryError) as ex:
         errMsg = "something went wrong while trying "
         errMsg += "to read the content of file '%s' ('%s')" % (filename, ex)
         raise ToolkitSystemException(errMsg)

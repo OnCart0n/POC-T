@@ -5,6 +5,9 @@
 
 import sys
 from lib.core.settings import IS_WIN, UNICODE_ENCODING
+from lib.utils.versioncheck import PY3
+if PY3:
+    unicode = str
 
 
 def singleTimeWarnMessage(message):  # Cross-linked function
