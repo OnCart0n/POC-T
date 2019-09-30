@@ -6,6 +6,7 @@
 """
 POC-T functional testing script
 """
+from __future__ import print_function
 
 auto = """
 
@@ -92,7 +93,9 @@ header = """#!/usr/bin/env python
 # author"""
 
 import os
+import sys
 import subprocess
+PY3 = sys.version_info[0] == 3
 
 
 def headerCheck(path):
@@ -105,14 +108,23 @@ def headerCheck(path):
             headerCheck(child)
         elif os.path.isfile(child):
             if child.endswith('.py'):
-                if open(child).read().startswith(header):
-                    pass
+                if PY3:
+                    if open(child, 'r', encoding='utf-8').read().startswith(header):
+                        pass
+                    else:
+                        print('Invalid header in %s' % child)
                 else:
-                    print 'Invalid header in %s' % child
+                    if open(child).read().startswith(header):
+                        pass
+                    else:
+                        print('Invalid header in %s' % child)
 
 
 def autoCheckResult(output, error, expect, unexpect):
     for each in expect:
+        if PY3:
+            output = output.decode()
+            error = error.decode()
         if each in output or each in error:
             pass
         else:
@@ -136,13 +148,14 @@ def autoCheck():
         r = each.split(';')[1:]
 
         command = base + c
+        print(command)
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
         o = process.stdout.read()
         e = process.stderr.read()
         if autoCheckResult(o, e, r, u):
             pass
         else:
-            print command
+            print(command)
 
 
 def checkInvalidVersion():
@@ -153,7 +166,7 @@ def checkInvalidVersion():
     if autoCheckResult(o, e, ['[CRITICAL] incompatible Python version'], []):
         pass
     else:
-        print command
+        print(command)
 
 
 def checkOutput(base_path):
@@ -165,27 +178,27 @@ def checkOutput(base_path):
             os.remove(target1)
             os.remove(target3)
         else:
-            print '!!!failed!!!'
+            print('!!!failed!!!')
     except IOError:
-        print '!!!failed!!!'
+        print('!!!failed!!!')
 
 
 def debugMain():
     try:
         root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         os.chdir(root_dir)
-        print '>>> base-dir [%s]' % root_dir
+        print('>>> base-dir [%s]' % root_dir)
 
-        print '>>> start header check'
+        print('>>> start header check')
         headerCheck(root_dir)
 
-        print '>>> start invalid-version check'
+        print('>>> start invalid-version check')
         checkInvalidVersion()
 
-        print '>>> start command check'
+        print('>>> start command check')
         autoCheck()
 
-        print '>>> start output check'
+        print('>>> start output check')
         checkOutput(root_dir)
 
     except KeyboardInterrupt:
