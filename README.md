@@ -22,7 +22,7 @@
 
 依赖
 ---
-* Python 2.7
+* Python 2.7 | Python 3.X
 * pip
 
 用户手册
